@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matriz Costo-Beneficio — Joaquín Uriona</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --bg: #f8f7f4;
+      --surface: #ffffff;
+      --surface2: #f1efe8;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --text-primary: #1a1a18;
+      --text-secondary: #5f5e5a;
+      --text-hint: #888780;
+      --c-teal: #1D9E75;
+      --c-teal-light: #E1F5EE;
+      --c-teal-dark: #085041;
+      --c-teal-mid: #9FE1CB;
+      --c-amber: #BA7517;
+      --c-amber-light: #FAEEDA;
+      --c-amber-dark: #633806;
+      --c-amber-mid: #FAC775;
+      --c-coral-light: #FAECE7;
+      --c-coral-dark: #712B13;
+      --c-blue: #378ADD;
+      --c-blue-light: #E6F1FB;
+      --c-blue-dark: #0C447C;
+      --c-gray: #5F5E5A;
+      --c-gray-light: #F1EFE8;
+      --c-gray-mid: #D3D1C7;
+      --c-gray-dark: #2C2C2A;
+      --c-purple: #534AB7;
+      --c-purple-light: #EEEDFE;
+      --c-purple-dark: #26215C;
+      --c-red-light: #FCEBEB;
+      --c-red-dark: #791F1F;
+      --c-red-mid: #F7C1C1;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ─── HERO HEADER ─── */
+    .hero {
+      background: var(--text-primary);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: rgba(29,158,117,0.15);
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 30%;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(186,117,23,0.12);
+    }
+
+    .hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c-teal-mid);
+      margin-bottom: 10px;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .hero-title span { color: var(--c-teal-mid); }
+
+    .hero-meta {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hero-chip {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .chip-teal  { background: rgba(29,158,117,0.2); color: var(--c-teal-mid); }
+    .chip-amber { background: rgba(186,117,23,0.2); color: var(--c-amber-mid); }
+    .chip-coral { background: rgba(216,90,48,0.2); color: #F0997B; }
+
+    /* ─── MAIN LAYOUT ─── */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-hint);
+      margin-bottom: 14px;
+    }
+
+    /* ─── DONUT + LEGEND ─── */
+    .overview-row {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 2rem;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+
+    @media (max-width: 580px) {
+      .overview-row { grid-template-columns: 1fr; }
+    }
+
+    .donut-wrap {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto;
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .donut-hours {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .donut-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-bar-wrap {
+      flex: 1;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .legend-bar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    .legend-sq {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .legend-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      min-width: 140px;
+    }
+
+    .legend-pct {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      min-width: 30px;
+      text-align: right;
+    }
+
+    /* ─── ACTIVITY CARDS ─── */
+    .act-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .act-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .act-card-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .act-name {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .act-time {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .act-pct {
+      font-size: 10px;
+      color: var(--text-hint);
+      margin-top: 3px;
+    }
+
+    /* ─── MATRIX ─── */
+    .matrix-wrap {
+      margin-bottom: 2.5rem;
+    }
+
+    .matrix-x-labels {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 0;
+      margin-bottom: 4px;
+    }
+
+    .matrix-x-inner {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-hint);
+      padding: 0 4px;
+    }
+
+    .matrix-body {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 0;
+    }
+
+    .y-label-wrap {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .y-label {
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+      font-size: 10px;
+      color: var(--text-hint);
+      white-space: nowrap;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .quadrant {
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      min-height: 140px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+
+    .quadrant:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .q-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-bottom: 8px;
+    }
+
+    .q-heading {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    .q-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .q-tag {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 10px;
+    }
+
+    /* Q1 */
+    .q1 { background: var(--c-teal-light); border-color: var(--c-teal-mid); }
+    .q1 .q-badge  { background: var(--c-teal-mid); color: var(--c-teal-dark); }
+    .q1 .q-heading { color: var(--c-teal-dark); }
+    .q1 .q-tag { background: rgba(29,158,117,0.2); color: var(--c-teal-dark); }
+
+    /* Q2 */
+    .q2 { background: var(--c-amber-light); border-color: var(--c-amber-mid); }
+    .q2 .q-badge  { background: var(--c-amber-mid); color: var(--c-amber-dark); }
+    .q2 .q-heading { color: var(--c-amber-dark); }
+    .q2 .q-tag { background: rgba(186,117,23,0.2); color: var(--c-amber-dark); }
+
+    /* Q3 */
+    .q3 { background: var(--c-gray-light); border-color: var(--c-gray-mid); }
+    .q3 .q-badge  { background: var(--c-gray-mid); color: var(--c-gray-dark); }
+    .q3 .q-heading { color: var(--c-gray-dark); }
+    .q3 .q-tag { background: rgba(136,135,128,0.2); color: var(--c-gray-dark); }
+
+    /* Q4 */
+    .q4 { background: var(--c-red-light); border-color: var(--c-red-mid); }
+    .q4 .q-badge  { background: var(--c-red-mid); color: var(--c-red-dark); }
+    .q4 .q-heading { color: var(--c-red-dark); }
+    .q4-note { font-size: 11px; color: #a32d2d; line-height: 1.5; }
+
+    .matrix-hint {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-hint);
+      margin-top: 8px;
+    }
+
+    /* ─── GOALS ─── */
+    .goals-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 480px) { .goals-grid { grid-template-columns: 1fr; } }
+
+    .goal-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    .goal-icon { font-size: 22px; margin-bottom: 8px; }
+
+    .goal-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 5px;
+    }
+
+    .goal-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ─── INSIGHTS ─── */
+    .insights-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .insight-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .insight-row:last-child { border-bottom: none; }
+
+    .insight-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .insight-text { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+    .insight-text strong { color: var(--text-primary); font-weight: 500; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--text-primary);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      font-size: 11px;
+      padding: 1.25rem;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Pensamiento Estratégico y Liderazgo · Abril 2026</div>
+    <h1 class="hero-title">Matriz de <span>análisis<br>costo-beneficio</span></h1>
+    <p class="hero-meta">Estudiante: Joaquín Uriona</p>
+    <div class="hero-chips">
+      <span class="hero-chip chip-teal">Meta: Senior Developer</span>
+      <span class="hero-chip chip-amber">Meta: Inglés B2 en 2 años</span>
+      <span class="hero-chip chip-coral">Inversión activa: Coursera</span>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- DISTRIBUCIÓN DE TIEMPO -->
+  <p class="section-label">Distribución semanal de tiempo</p>
+  <div class="overview-row">
+    <div class="donut-wrap">
+      <canvas id="donutChart"></canvas>
+      <div class="donut-center">
+        <span class="donut-hours">100 h</span>
+        <span class="donut-sub">por semana</span>
+      </div>
+    </div>
+    <div class="legend-list" id="legend"></div>
+  </div>
+
+  <!-- TARJETAS DE ACTIVIDAD -->
+  <p class="section-label">Actividades clave</p>
+  <div class="act-grid" id="actGrid"></div>
+
+  <!-- MATRIZ -->
+  <p class="section-label" style="margin-top: 2rem;">Matriz costo-beneficio</p>
+  <div class="matrix-wrap">
+    <div class="matrix-x-labels">
+      <div></div>
+      <div class="matrix-x-inner">
+        <span>← Bajo costo</span>
+        <span>Alto costo →</span>
+      </div>
+    </div>
+    <div class="matrix-body">
+      <div class="y-label-wrap">
+        <span class="y-label">Alto beneficio →</span>
+        <span class="y-label">← Bajo beneficio</span>
+      </div>
+      <div class="matrix-grid">
+        <div class="quadrant q1">
+          <span class="q-badge">Priorizar</span>
+          <div class="q-heading">Alto beneficio<br>Bajo costo</div>
+          <div class="q-tags">
+            <span class="q-tag">Certificaciones</span>
+            <span class="q-tag">Social</span>
+          </div>
+        </div>
+        <div class="quadrant q2">
+          <span class="q-badge">Gestionar</span>
+          <div class="q-heading">Alto beneficio<br>Alto costo</div>
+          <div class="q-tags">
+            <span class="q-tag">Académico</span>
+            <span class="q-tag">Proyectos</span>
+            <span class="q-tag">Inglés</span>
+          </div>
+        </div>
+        <div class="quadrant q3">
+          <span class="q-badge">Mantener</span>
+          <div class="q-heading">Bajo beneficio<br>Bajo costo</div>
+          <div class="q-tags">
+            <span class="q-tag">Ocio / Gaming</span>
+          </div>
+        </div>
+        <div class="quadrant q4" style="cursor: default;">
+          <span class="q-badge">Optimizar</span>
+          <div class="q-heading">Bajo beneficio<br>Alto costo</div>
+          <p class="q4-note">Sin actividades registradas — señal de una estructura de tiempo sana hacia las metas profesionales.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METAS -->
+  <p class="section-label" style="margin-top: 2rem;">Metas a largo plazo</p>
+  <div class="goals-grid">
+    <div class="goal-card">
+      <div class="goal-icon">💻</div>
+      <div class="goal-title">Senior Developer</div>
+      <div class="goal-desc">Portafolio de nivel corporativo más certificaciones técnicas para acceder a Big Tech.</div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-icon">🌐</div>
+      <div class="goal-title">Certificación Inglés B2</div>
+      <div class="goal-desc">2 horas diarias de estudio, con meta de certificación en un plazo de 2 años.</div>
+    </div>
+  </div>
+
+  <!-- RECOMENDACIONES -->
+  <p class="section-label">Plan de acción — Recomendaciones</p>
+  <div class="insights-card">
+    <div class="insight-row">
+      <div class="insight-dot" style="background: #1D9E75;"></div>
+      <div class="insight-text"><strong>Blindar las mañanas</strong> para Inglés y Proyectos, que son las actividades con mayor desgaste cognitivo y requieren el pico de energía mental.</div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-dot" style="background: #BA7517;"></div>
+      <div class="insight-text"><strong>Mantener el límite de 4 h/semana de gaming</strong> para no comprometer el avance en certificaciones de Coursera — el costo de oportunidad es directo.</div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-dot" style="background: #378ADD;"></div>
+      <div class="insight-text"><strong>Utilizar el tiempo social como recompensa</strong> tras completar hitos en proyectos personales, reforzando productividad y bienestar.</div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-dot" style="background: #534AB7;"></div>
+      <div class="insight-text"><strong>Obtener al menos 1 certificado mensual</strong> para validar el esfuerzo del Cuadrante 1 y mantener el avance tangible hacia Big Tech.</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Joaquín Uriona · Pensamiento Estratégico y Liderazgo · Proyecto Final · 2026
+</footer>
+
+<script>
+  const activities = [
+    { name: 'Académico (Tecnológico)', timeStr: '7.5 h/día', hoursWeek: 52.5, color: '#1D9E75' },
+    { name: 'Proyectos personales',    timeStr: '3 h/día',   hoursWeek: 21,   color: '#BA7517' },
+    { name: 'Estudio de inglés',       timeStr: '2 h/día',   hoursWeek: 14,   color: '#378ADD' },
+    { name: 'Social / personal',       timeStr: '8 h/sem',   hoursWeek: 8,    color: '#534AB7' },
+    { name: 'Ocio / Gaming',           timeStr: '4 h/sem',   hoursWeek: 4,    color: '#888780' },
+  ];
+
+  const total = activities.reduce((s, a) => s + a.hoursWeek, 0);
+
+  // Donut chart
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: activities.map(a => a.name),
+      datasets: [{
+        data: activities.map(a => a.hoursWeek),
+        backgroundColor: activities.map(a => a.color),
+        borderWidth: 3,
+        borderColor: '#ffffff',
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ` ${ctx.parsed} h/sem (${Math.round(ctx.parsed/total*100)}%)` }
+      }}
+    }
+  });
+
+  // Legend
+  const legendEl = document.getElementById('legend');
+  activities.forEach(a => {
+    const pct = Math.round((a.hoursWeek / total) * 100);
+    legendEl.innerHTML += `
+      <div class="legend-item">
+        <div class="legend-sq" style="background:${a.color}"></div>
+        <span class="legend-name">${a.name}</span>
+        <div class="legend-bar-wrap"><div class="legend-bar" style="width:${pct}%;background:${a.color}"></div></div>
+        <span class="legend-pct">${pct}%</span>
+      </div>`;
+  });
+
+  // Activity cards
+  const grid = document.getElementById('actGrid');
+  activities.forEach(a => {
+    const pct = Math.round((a.hoursWeek / total) * 100);
+    grid.innerHTML += `
+      <div class="act-card">
+        <div class="act-card-bar" style="background:${a.color}"></div>
+        <div class="act-name">${a.name}</div>
+        <div class="act-time">${a.timeStr}</div>
+        <div class="act-pct">${pct}% del total semanal</div>
+      </div>`;
+  });
+</script>
+</body>
+</html>
