@@ -1,0 +1,7 @@
+Copyright (c) 2026 Joaquin Uriona
+
+Todos los derechos reservados.
+
+Queda terminantemente prohibido el uso, copia, modificación, distribución o comercialización de este software y su documentación asociada sin el permiso expreso y por escrito del titular del copyright, Joaquin Uriona. 
+
+Este software se proporciona "tal cual", para fines de exhibición de portafolio profesional, sin garantías de ningún tipo.
