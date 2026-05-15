@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Projecto_Jo_.Models;
 
-namespace Projecto_Jo_.Controllers
+namespace Projecto_Jo_.Controllers.home
 {
 	public class HomeController : Controller
 	{
