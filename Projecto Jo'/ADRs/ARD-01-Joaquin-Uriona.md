@@ -74,5 +74,7 @@ Deuda o riesgo: Al empaquetar todo el flujo financiero y administrativo dentro d
 
 
 ## Diagrama
-Un boceto de cómo se estructura tu sistema (draw.io, Mermaid o a mano escaneado)
-![Diagrama del sistema](./ruta/diagrama-nivel-1.png)
+
+
+![Diagrama del sistema](./Diagramas/Diagrama-version1.png)
+
