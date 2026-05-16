@@ -77,4 +77,3 @@ Deuda o riesgo: Al empaquetar todo el flujo financiero y administrativo dentro d
 
 
 ![Diagrama del sistema](./Diagramas/Diagrama-version1.png)
-
