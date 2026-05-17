@@ -6,10 +6,18 @@ namespace Projecto_Jo_.Controllers.home
 {
 	public class HomeController : Controller
 	{
-		public IActionResult Index()
+		private readonly ILogger<HomeController> _logger;
+
+		public HomeController(ILogger<HomeController> _logger)
 		{
-			return View();
+			_logger = _logger;
 		}
+
+	//	public IActionResult Index()  esto todavia no lo vamos a usar ;)
+	//	{
+	//		var itemsParaHome = HomeController._menu.TakeLast(3).ToList();
+	//		return View(itemsParaHome);
+	//	} //
 
 		public IActionResult Privacy()
 		{
